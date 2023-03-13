@@ -1,0 +1,1 @@
+# node-red-flow-shipping-box-label
