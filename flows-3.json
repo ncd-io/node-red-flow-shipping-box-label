@@ -1,0 +1,542 @@
+[
+    {
+        "id": "8bcfc2d0eeae63d7",
+        "type": "tab",
+        "label": "ATS Box Label Printer",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "921a6dc4696b8992",
+        "type": "serial in",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "serial": "82cae6d115ed028e",
+        "x": 440,
+        "y": 560,
+        "wires": [
+            [
+                "fc3956d303dee041"
+            ]
+        ]
+    },
+    {
+        "id": "fc3956d303dee041",
+        "type": "function",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "func": "function formatString(str) {\n    var formattedString = '';\n    for (var i = 0; i < str.length; i += 2) {\n        formattedString += str.substring(i, i + 2) + ':';\n    }\n    formattedString = formattedString.slice(0, 23); // remove the last colon\n    return formattedString;\n}\n\nvar input = msg.payload;\nmsg.devices = [];\nconst modifiedString = input.replace(\"http://qr.24c.io/\", \"\");\n\nvar formattedString = formatString(modifiedString);\n\nvar devices = flow.get(\"devices\");\n\nif (!devices.includes(formattedString)) {\n    devices.push(formattedString);\n    flow.set(\"devices\",devices);\n    var count = flow.get(\"count\");\n    count++;\n    flow.set(\"count\",count);\n    msg.devices = devices;\n    msg.count = count;\n    return msg;\n}else{\n    node.send(null);\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\nflow.set(\"devices\",[]);\nflow.set(\"count\",0);",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 560,
+        "wires": [
+            [
+                "0c9423bc7eed7724",
+                "949fb3cc9d503726",
+                "731c7674530acba4"
+            ]
+        ]
+    },
+    {
+        "id": "0c9423bc7eed7724",
+        "type": "debug",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "949fb3cc9d503726",
+        "type": "ui_template",
+        "z": "8bcfc2d0eeae63d7",
+        "group": "9660a838ec15e5a8",
+        "name": "",
+        "order": 0,
+        "width": "5",
+        "height": "10",
+        "format": "<h2>Scanned Devices</h2>\n<ul id=\"scanned_devices\">\n</ul>\n<!-- <md-button ng-click=\"clicked(b)\">Clear</md-button> -->\n\n<script>\n    (function(scope) {\n        \n        scope.clicked = function(){\n            var clearMSG = {\"payload\":\"\",\"topic\":\"clear\"};\n            scope.send(clearMSG);\n        }\n        \n        scope.$watch('msg.devices', function() {\n            console.log(\"triggered\");\n            var devices = scope.msg.devices;\n            console.log(devices);\n            var list = document.getElementById(\"scanned_devices\");\n            while( list.firstChild ){\n                list.removeChild( list.firstChild );\n            }\n            for(i = 0; i < devices.length; i++){\n                let list_item = document.createElement(\"li\");\n                let button = document.createElement(\"button\");\n                button.innerHTML = devices[i];\n                button.value = devices[i];\n                button.onclick = function () {\n                    console.log(\"item clicked\");\n                    var devices = scope.msg.devices;\n                    var count = scope.msg.count;\n                    console.log(devices);\n                    const filteredArray = devices.filter((item) => item !== this.value);\n                    count--;\n                    scope.msg.devices = filteredArray;\n                    scope.msg.count = count;\n                    scope.send(scope.msg);\n                    return scope.msg;\n                };\n                list_item.appendChild(button);\n                list.appendChild(list_item);\n            }\n            return null;\n        })\n\n    })(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 880,
+        "y": 600,
+        "wires": [
+            [
+                "21dc37b179f2652a",
+                "2e73983e99dc14d2",
+                "c44c54ee54d25706"
+            ]
+        ]
+    },
+    {
+        "id": "21dc37b179f2652a",
+        "type": "debug",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "fb73d346eed1aae7",
+        "type": "ui_button",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "group": "9660a838ec15e5a8",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Print",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 350,
+        "y": 720,
+        "wires": [
+            [
+                "4e578430310e3043"
+            ]
+        ]
+    },
+    {
+        "id": "4e578430310e3043",
+        "type": "function",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "function 1",
+        "func": "var requestMSG = { \"payload\": { \"qr_box_id\": \"new\", \"sensors_in_box\": flow.get(\"devices\")}};\nflow.set(\"devices\", []);\nmsg.devices = [];\nreturn [msg, requestMSG];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 720,
+        "wires": [
+            [
+                "949fb3cc9d503726"
+            ],
+            [
+                "dc864723be4f2255"
+            ]
+        ]
+    },
+    {
+        "id": "2e73983e99dc14d2",
+        "type": "link out",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [],
+        "x": 1005,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "ed7062c1fe5db56f",
+        "type": "link in",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "link in 1",
+        "links": [],
+        "x": 505,
+        "y": 600,
+        "wires": [
+            [
+                "60e7c1795c97f716"
+            ]
+        ]
+    },
+    {
+        "id": "60e7c1795c97f716",
+        "type": "change",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "devices",
+                "pt": "msg",
+                "to": "devices",
+                "tot": "flow"
+            },
+            {
+                "t": "set",
+                "p": "count",
+                "pt": "msg",
+                "to": "count",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 660,
+        "y": 600,
+        "wires": [
+            [
+                "949fb3cc9d503726",
+                "731c7674530acba4"
+            ]
+        ]
+    },
+    {
+        "id": "c44c54ee54d25706",
+        "type": "change",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "devices",
+                "pt": "flow",
+                "to": "devices",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "count",
+                "pt": "flow",
+                "to": "count",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1060,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "dc864723be4f2255",
+        "type": "http request",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://api01-iiot.advancedtech.com/api/v1/box/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "basic",
+        "senderr": false,
+        "headers": [],
+        "x": 710,
+        "y": 740,
+        "wires": [
+            [
+                "10da35e5e1fdadb9"
+            ]
+        ]
+    },
+    {
+        "id": "10da35e5e1fdadb9",
+        "type": "function",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "function 2",
+        "func": "if (msg.statusCode != 200){\n    return null;\n}\n\nvar payloadObject = JSON.parse(msg.payload);\n\nmsg.labelText = \"BOX: \"+payloadObject.qr_box_id;\nmsg.labelQR = payloadObject.qr_box_url;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 740,
+        "wires": [
+            [
+                "a27bc70ce40753cd"
+            ]
+        ]
+    },
+    {
+        "id": "a27bc70ce40753cd",
+        "type": "function",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "func": "var PTOUCH_ESC_P_MODE = Buffer.from([0x1b, 0x69, 0x61, 0x00]);\nvar INITIALIZE = Buffer.from([0x1b,0x40]);\n// var LARGE_QR = Buffer.from([0x1b,0x69,0x51,0x0C,0x02,0x00,0x00,0x00,0x00,0x02,0x00]);\nvar LARGE_QR = Buffer.from([0x1b, 0x69, 0x51, 0x06, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]);\nvar AUTO_LENGTH = Buffer.from([0x1b,0x69,0x6c,0x00,0x00]);\nvar LEFT_MARGIN = Buffer.from([0x1b, 0x24, 0x3C, 0x00]);\nvar FONT = Buffer.from([0x1B, 0x6B, 0x00]);\nvar FONT_SIZE = Buffer.from([0x1B, 0x58, 0x48]);\n\nconsole.log(\"msg.labelQR: \" + msg.labelQR);\nconsole.log(\"msg.labelText: \" + msg.labelText);\n\nvar payload = [];\npayload.push(PTOUCH_ESC_P_MODE); //Command to put printer in ESC P command mode\npayload.push(INITIALIZE); //Command to initialize printer for commands\n\n//QR Code Bytes\npayload.push(LARGE_QR); //QR code config bytes 12 dots per per cell, Model 2, auto input\npayload.push(Buffer.from(msg.labelQR + \"\\\\\\\\\\\\\", \"utf-8\")); //Payload to embed in QR Code.  Note requires three \\ to end QR payload\n// payload.push(Buffer.from(JSON.stringify(msg.labelQR)+\"\\\\\\\\\\\\\", \"utf-8\")); //Payload to embed in QR Code.  Note requires three \\ to end QR payload\n//Text bytes\npayload.push(AUTO_LENGTH); //Auto set length of label\n// payload.push(LEFT_MARGIN); //1\" left margin to allow for QR code on left side of label\npayload.push(FONT); //Helsinki font\npayload.push(FONT_SIZE); //12pt font size\npayload.push(Buffer.from(msg.labelText, \"utf-8\"));  //print Box ID\npayload.push(Buffer.from([0x0c])); //execute print command\n\nconsole.log(payload);\n\n// console.log(\"First Line: \"+msg.payload.address.substring(0,11) +\"second line:\"+ msg.payload.address.substring(12,23)+\"third line:\"+msg.payload.test_engineer);\n\nmsg.payload = Buffer.concat(payload);\nconsole.log(msg.payload);\n\nreturn msg;\n\n// var PTOUCH_ESC_P_MODE = Buffer.from([0x1b, 0x69, 0x61, 0x00]);\n// var INITIALIZE = Buffer.from([0x1b, 0x40]);\n// var LARGE_QR = Buffer.from([0x1b, 0x69, 0x51, 0x08, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00]);\n// var AUTO_LENGTH = Buffer.from([0x1b, 0x69, 0x6c, 0x00, 0x00]);\n// var LEFT_MARGIN = Buffer.from([0x1b, 0x24, 0x3C, 0x00]);\n// var FONT = Buffer.from([0x1B, 0x6B, 0x00]);\n// var FONT_SIZE = Buffer.from([0x1B, 0x58, 0x50]);\n\n// var payload = [];\n// payload.push(PTOUCH_ESC_P_MODE); //Command to put printer in ESC P command mode\n// payload.push(INITIALIZE); //Command to initialize printer for commands\n\n// //QR Code Bytes\n// payload.push(LARGE_QR); //QR code config bytes 12 dots per per cell, Model 2, auto input\n// payload.push(Buffer.from(msg.address + \"\\\\\\\\\\\\\", \"utf-8\")); //Payload to embed in QR Code.  Note requires three \\ to end QR payload\n// //Text bytes\n// payload.push(AUTO_LENGTH); //Auto set length of label\n// payload.push(LEFT_MARGIN); //1\" left margin to allow for QR code on left side of label\n// payload.push(FONT); //Helsinki font\n// payload.push(FONT_SIZE); //12pt font size\n// payload.push(Buffer.from(msg.address.substring(0, 11) + \"\\n\", \"utf-8\"));  //print first half of address on top line\n// payload.push(Buffer.from([0x0c])); //execute print command\n\n// // console.log(\"First Line: \"+msg.payload.address.substring(0,11) +\"second line:\"+ msg.payload.address.substring(12,23)+\"third line:\"+msg.payload.test_engineer);\n\n// msg.payload = Buffer.concat(payload);\n\n// return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1080,
+        "y": 740,
+        "wires": [
+            [
+                "0b1f4fd83e5853c2"
+            ]
+        ]
+    },
+    {
+        "id": "21a512280537eb0f",
+        "type": "inject",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "statusCode",
+                "v": "200",
+                "vt": "num"
+            },
+            {
+                "p": "labelQR",
+                "v": "http://qr.24c.io/?box=1003",
+                "vt": "str"
+            },
+            {
+                "p": "labelText",
+                "v": "BOX:1003",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"status\":\"New QR Box Created\",\"qr_box_id\":1003,\"qr_box_url\":\"http://qr.24c.io/?box=1003\",\"sensors_in_box\":[\"00:13:a2:00:41:ed:d2:c3\",\"00:13:a2:00:41:f5:32:c9\"]}",
+        "payloadType": "str",
+        "x": 790,
+        "y": 700,
+        "wires": [
+            [
+                "10da35e5e1fdadb9"
+            ]
+        ]
+    },
+    {
+        "id": "0b1f4fd83e5853c2",
+        "type": "tcp out",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "host": "192.168.1.111",
+        "port": "9100",
+        "beserver": "client",
+        "base64": false,
+        "end": true,
+        "tls": "",
+        "x": 1310,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "ef5e11a27d99c27f",
+        "type": "status",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "scope": [
+            "921a6dc4696b8992"
+        ],
+        "x": 440,
+        "y": 400,
+        "wires": [
+            [
+                "c8b09fd0231228f5"
+            ]
+        ]
+    },
+    {
+        "id": "7087aa7bb1f3a467",
+        "type": "ui_text",
+        "z": "8bcfc2d0eeae63d7",
+        "group": "9660a838ec15e5a8",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Scanner",
+        "format": "{{msg.payload}}",
+        "layout": "row-center",
+        "className": "",
+        "x": 1000,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "c8b09fd0231228f5",
+        "type": "switch",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "property": "status.fill",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "green",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "red",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 610,
+        "y": 400,
+        "wires": [
+            [
+                "7c47fca3f4efba07"
+            ],
+            [
+                "adaca421ffbb748b"
+            ]
+        ]
+    },
+    {
+        "id": "adaca421ffbb748b",
+        "type": "change",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Disconnected",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 780,
+        "y": 420,
+        "wires": [
+            [
+                "7087aa7bb1f3a467"
+            ]
+        ]
+    },
+    {
+        "id": "7c47fca3f4efba07",
+        "type": "change",
+        "z": "8bcfc2d0eeae63d7",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Connected",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 780,
+        "y": 380,
+        "wires": [
+            [
+                "7087aa7bb1f3a467"
+            ]
+        ]
+    },
+    {
+        "id": "731c7674530acba4",
+        "type": "ui_text",
+        "z": "8bcfc2d0eeae63d7",
+        "group": "9660a838ec15e5a8",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Count",
+        "format": "{{msg.count}}",
+        "layout": "row-spread",
+        "className": "",
+        "x": 870,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "82cae6d115ed028e",
+        "type": "serial-port",
+        "serialport": "/dev/tty.usbmodem00000000011C1",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "100",
+        "bin": "false",
+        "out": "time",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "9660a838ec15e5a8",
+        "type": "ui_group",
+        "name": "ATS Box Label",
+        "tab": "386b55d67ce80557",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "386b55d67ce80557",
+        "type": "ui_tab",
+        "name": "ATS Box Label",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
